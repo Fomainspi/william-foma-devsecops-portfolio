@@ -5,7 +5,7 @@ A hands-on Java/Spring Boot portfolio and reproducible DevSecOps lab. The reposi
 **Owner:** William Foma  
 **Repository:** https://github.com/Fomainspi/william-foma-devsecops-portfolio  
 **JFrog Platform:** https://williamdev.jfrog.io  
-**Current status:** Foundation and CI workflow committed; the first real workflow run and JFrog publication still need verification.
+**Current status:** Verified CI run #30 passed both security validation and JFrog JAR publication. See the [workflow run](https://github.com/Fomainspi/william-foma-devsecops-portfolio/actions/runs/40770703468) and [CI incident/resolution report](docs/workflow-incident-report.md).
 
 ## Project goals
 
@@ -56,7 +56,7 @@ The repositories have been created in the JFrog account and confirmed in the scr
 | `foma-maven-local` | Maven | Versioned application JAR and checksum |
 | `foma-docker-local` | Docker | Intended destination for container images |
 
-The setup steps and screenshot evidence are documented in [JFrog setup](docs/jfrog-setup.md). The screenshots need to be added as tracked image assets before they can render inline from GitHub; the repository documentation currently describes the verified screens without claiming that image assets have already been committed.
+The setup steps are documented in [JFrog setup](docs/jfrog-setup.md). The successful CI and publication steps are evidenced by [run #30](https://github.com/Fomainspi/william-foma-devsecops-portfolio/actions/runs/40770703468); the companion incident report includes the two screenshots shared for this run.
 
 ## Security controls and limitations
 
@@ -93,4 +93,4 @@ A scan report is not proof of complete security. Review findings, test that rele
 
 ## Completion rule
 
-A stage is **verified** only after a real run succeeds and the evidence is inspected. CI workflow YAML and documentation are committed, but that does not by itself mean the pipeline, image publication, or Kubernetes deployment has been tested. Check the Actions tab for the first run and use the troubleshooting guide for failures.
+A stage is **verified** only after a real run succeeds and the evidence is inspected. CI validation and JFrog JAR publication are verified by run #30. Docker image publication and Kubernetes deployment remain separate tasks; see the [CI incident/resolution report](docs/workflow-incident-report.md) and [troubleshooting guide](docs/troubleshooting.md).
