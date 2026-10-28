@@ -2,42 +2,53 @@
 
 ## Purpose
 
-Automate repeatable build, test, security checks, and artifact publishing.
+Automate repeatable testing, security checks, SBOM generation, and versioned JAR publication.
 
 ## Required configuration
 
-Use repository Settings → Secrets and variables → Actions. Add the JFrog URL as a variable and the scoped access token as a secret if using token authentication. Never store credentials as plain workflow variables.
+In GitHub, open **Settings → Secrets and variables → Actions** and confirm:
+- Variable `JF_URL` is set to `https://williamdev.jfrog.io`.
+- Secret `JF_ACCESS_TOKEN` contains the scoped JFrog token.
 
-## Workflow security principles
+Never store the token as a plain variable or print it to logs. The workflow should not publish artifacts for pull requests.
 
-- Set workflow and job permissions to the minimum required.
-- Pin third-party actions to full commit SHAs where practical.
-- Do not expose publish credentials to untrusted fork pull requests.
-- Separate pull-request validation from release/publish jobs.
-- Avoid printing environment variables or enabling shell tracing around secrets.
-- Prefer OIDC over long-lived tokens when the JFrog account and workflow support it.
-- Use immutable artifact versions and retain scan reports.
+## Workflow file
 
-## Expected stages
+The workflow is `.github/workflows/devsecops.yml`. It currently contains two jobs:
 
-1. Checkout source.
-2. Set up the project JDK.
-3. Compile and run tests.
-4. Run source and dependency scans.
-5. Generate and retain an SBOM.
-6. Publish the approved JAR to Artifactory only from a trusted branch/tag.
-7. Build, scan, and publish the image after the artifact gate passes.
+1. **Test and security checks** — checkout, Java 21, Maven `clean verify`, CycloneDX SBOM generation, and a Trivy filesystem scan for vulnerabilities, secrets, and misconfigurations. HIGH and CRITICAL findings fail the scan step.
+2. **Publish versioned JAR** — runs only after validation succeeds on a push to `main`; sets up JFrog CLI, pings the platform, uploads the JAR and SHA-256 sidecar to `foma-maven-local`, and publishes build information.
 
-The exact YAML will be documented alongside the workflow as implementation is added. Do not assume publishing is configured until a real workflow run confirms it.
+The artifact version includes the workflow run number and commit SHA so repeated builds do not overwrite one fixed version.
 
-## Verification
+## First-run verification
 
-Open the repository Actions tab, select the workflow run, and inspect each step. Confirm failures block later publishing steps. Check that logs do not contain credentials.
+1. Open the repository **Actions** tab.
+2. Select the `DevSecOps CI` run created by the commit.
+3. Inspect the Maven test and Trivy scan steps.
+4. On a push to `main`, inspect the JFrog ping and upload steps.
+5. Confirm the JAR and checksum are visible in Artifactory.
+6. Confirm the SBOM and test evidence are attached to the workflow run.
+
+A failed required check must stop the dependent publish job. A successful YAML commit is not proof the workflow itself passed; use the actual run result.
+
+## Security principles
+
+- Workflow-level permissions are read-only by default.
+- Publishing only runs on the trusted `main` branch.
+- Never run publishing with untrusted fork pull-request code.
+- Prefer pinning third-party actions to full commit SHAs for high-assurance production workflows; the current examples use version tags for readability and should be upgraded before production use.
+- Do not enable shell tracing or print environment variables around secrets.
+- Prefer OIDC over long-lived tokens when the account supports it.
+
+## Minikube boundary
+
+GitHub-hosted runners cannot normally connect to Minikube on a personal workstation. Deployment is a separate local operation unless a secured self-hosted runner is deliberately configured. Never expose the Kubernetes API publicly just to make a hosted runner reach a laptop cluster.
 
 ## Troubleshooting
 
 - Workflow not triggered: inspect the `on:` events and branch names.
-- Secret is empty: check exact secret name and repository/environment scope.
-- Permission denied: check workflow permissions and JFrog repository permissions.
-- Works on default branch but not PR: confirm that secrets are intentionally unavailable to forked PRs.
-- Hosted runner cannot reach Minikube: expected for a local laptop cluster; use the documented local deployment process.
+- Secret appears empty: check exact name and scope; secrets are not available to forked PRs.
+- JFrog 401: validate token and base URL without revealing the token.
+- JFrog 403: grant only the needed deploy/build-info permissions.
+- Trivy blocks: inspect the finding and fix/update the affected dependency or base image; don't disable the gate to get a green run.
