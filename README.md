@@ -1,154 +1,96 @@
 # William Foma — DevSecOps Portfolio
 
-> A hands-on portfolio application and reproducible DevSecOps lab. The goal is to build, test, scan, publish, containerize, and deploy a Java application using GitHub Actions, JFrog Artifactory, Docker, Trivy, Helm, and Kubernetes (Minikube).
+A hands-on Java/Spring Boot portfolio and reproducible DevSecOps lab. The repository is designed to demonstrate a controlled software-delivery path: test, scan, create an SBOM, publish a versioned artifact to JFrog, containerize it, scan the image, and deploy locally to Kubernetes with Helm.
 
 **Owner:** William Foma  
-**GitHub:** https://github.com/Fomainspi/william-foma-devsecops-portfolio  
+**Repository:** https://github.com/Fomainspi/william-foma-devsecops-portfolio  
 **JFrog Platform:** https://williamdev.jfrog.io  
-**Status:** Initial project setup and documentation in progress.
+**Current status:** Foundation and CI workflow committed; the first real workflow run and JFrog publication still need verification.
 
----
+## Project goals
 
-## 1. Why this project exists
+1. Build a professional portfolio application using verified career information only.
+2. Demonstrate DevOps and DevSecOps engineering practices in a public, documented repository.
+3. Make the setup reproducible from a clean workstation with commands, expected results, troubleshooting, and cleanup.
+4. Record evidence honestly: planned controls are not called complete until a run confirms them.
 
-This repository has two purposes:
-
-1. **Professional portfolio:** present William Foma's DevOps/DevSecOps skills, selected projects, and professional background.
-2. **Learning lab:** document every major implementation step so another engineer—or William working from a clean machine—can reproduce the setup without relying on undocumented knowledge.
-
-This is an educational portfolio project, not a claim that every control automatically guarantees a secure production system. Security findings, limitations, and any exceptions must be documented honestly.
-
-## 2. What we are building
-
-The portfolio will be a Java application using Spring Boot. It will contain professional sections such as an introduction, skills, experience, projects, FOMA training, and contact links. Only verified information will be published. Do not add private contact details, secrets, or unverified employment dates.
-
-### Target delivery flow
+## Delivery architecture
 
 ```text
-Developer change / Pull Request
-          |
-          v
-GitHub Actions: compile + unit tests
-          |
-          +--> Source-code security scan (SAST)
-          +--> Maven dependency scan
-          +--> Secret detection
-          +--> SBOM generation
-          |
-          v
-JFrog Artifactory: publish versioned Maven artifact
-          |
-          v
-Download exact artifact + verify checksum
-          |
-          v
-Build Docker image from the artifact
-          |
-          +--> Trivy image scan
-          +--> Optional JFrog Xray scan, if enabled by the account plan
-          |
-          v
-Publish versioned image to JFrog
-          |
-          v
-Validate Helm/Kubernetes manifests
-          |
-          v
-Deploy to Minikube + rollout and smoke tests
+Pull request / push to main
+        |
+        v
+GitHub Actions
+  Java 21 + Maven tests
+  Trivy filesystem vulnerability/secret/misconfiguration scan
+  CycloneDX SBOM
+        |
+        | main branch only, after gates pass
+        v
+JFrog Artifactory
+  foma-maven-local (versioned JAR + SHA-256)
+        |
+        v
+Docker image + Trivy image scan
+        |
+        v
+Helm chart -> local Minikube -> rollout + health check
 ```
 
-**Important:** a standard GitHub-hosted runner cannot normally reach a Minikube cluster running on a personal computer. The first implementation will run the deployment step from your local machine, or we will document how to configure a secured self-hosted runner if remote deployment is later required.
+The initial workflow publishes the JAR to JFrog after validation. Container publication and remote cluster deployment must be verified against the account's Docker registry access method before being considered complete. A GitHub-hosted runner cannot normally access Minikube on a personal computer; deploy locally unless a secured self-hosted runner is deliberately configured.
 
-## 3. Security controls
+## Implemented repository components
 
-| Layer | Planned controls | Evidence |
+- `.github/workflows/devsecops.yml` — CI checks, SBOM generation, Trivy filesystem scan, and main-branch JFrog artifact publication.
+- `pom.xml` and `src/` — Spring Boot application and tests.
+- `Dockerfile` and `compose.yaml` — local container packaging with a non-root user and additional runtime restrictions.
+- `helm/william-foma-portfolio/` — Helm chart foundation for local Kubernetes.
+- `docs/` — setup, architecture, security, JFrog, deployment, troubleshooting, and clean rebuild guides.
+
+## JFrog repositories
+
+The repositories have been created in the JFrog account and confirmed in the screenshots shared during setup:
+
+| Repository key | Package type | Purpose |
 |---|---|---|
-| Source | Pull-request checks, SAST, secret detection | Workflow logs and scan reports |
-| Dependencies | Vulnerability scan and SBOM | Dependency report and SBOM file |
-| Build | Tests, pinned actions where practical, minimal permissions | Test results and workflow configuration |
-| Artifact | Versioned JAR, repository permissions, checksum verification | Artifactory build/artifact record |
-| Container | Minimal runtime image, non-root user, Trivy scan | Dockerfile and scan report |
-| Kubernetes | Non-root security context, resource limits, RBAC, manifest validation | Helm chart and validation output |
-| Runtime | Readiness/liveness checks, rollout and smoke tests | Deployment commands and results |
+| `foma-maven-local` | Maven | Versioned application JAR and checksum |
+| `foma-docker-local` | Docker | Intended destination for container images |
 
-Security gates will have explicit severity thresholds. A scanner producing a report is not the same as a gate blocking a release; both configuration and test evidence must be documented. JFrog Xray and advanced GitHub features will only be claimed as enabled after account entitlement and configuration are verified.
+The setup steps and screenshot evidence are documented in [JFrog setup](docs/jfrog-setup.md). The screenshots need to be added as tracked image assets before they can render inline from GitHub; the repository documentation currently describes the verified screens without claiming that image assets have already been committed.
 
-## 4. Documentation map
+## Security controls and limitations
 
-The project will be documented in small, task-focused guides:
-
-- [Documentation index](docs/README.md) — learning order and links to every guide.
-- [Architecture](docs/architecture.md) — components, data flow, trust boundaries, and design decisions.
-- [Prerequisites and setup](docs/prerequisites-and-setup.md) — required tools, accounts, versions, and installation checks.
-- [JFrog setup](docs/jfrog-setup.md) — repositories, permissions, token handling, and connection checks.
-- [GitHub Actions and secrets](docs/github-actions.md) — workflow setup, variables, secrets, least privilege, and troubleshooting.
-- [Security controls](docs/security-controls.md) — scanners, policies, thresholds, SBOM, and how to interpret findings.
-- [Docker and image scanning](docs/docker-and-image-security.md) — image build, hardening, scan, and publish.
-- [Minikube deployment](docs/minikube-deployment.md) — local cluster, Helm, rollout verification, and cleanup.
-- [Troubleshooting](docs/troubleshooting.md) — symptoms, diagnostic commands, likely causes, and fixes.
-- [Rebuild from scratch](docs/rebuild-from-scratch.md) — clean-machine runbook.
-- [Interview walkthrough](docs/interview-walkthrough.md) — how to explain architecture, trade-offs, security gates, and evidence.
-
-Each hands-on guide should include: **purpose, prerequisites, steps, commands, expected result, verification, common errors, cleanup, and a short explanation of why the step matters.**
-
-## 5. JFrog repository setup (verified in the account)
-
-The JFrog trial was configured with these **Local** repositories:
-
-| Repository key | Package type | What it stores |
+| Control | Current implementation | Evidence to verify |
 |---|---|---|
-| `foma-maven-local` | Maven | Versioned Spring Boot JAR artifacts |
-| `foma-docker-local` | Docker | Versioned container images |
+| Unit/integration tests | Maven `clean verify` | GitHub Actions log and Surefire reports |
+| Filesystem scan | Trivy: vulnerabilities, secrets, misconfigurations; HIGH/CRITICAL gate | Workflow scan result |
+| SBOM | CycloneDX Maven plugin | `target/bom.json` artifact |
+| Artifact traceability | Versioned path and SHA-256 sidecar in JFrog | Repository contents and checksum |
+| Container hardening | Non-root user; Compose read-only root, tmpfs, dropped capabilities | Local container test |
+| Kubernetes hardening | Non-root, no privilege escalation, dropped capabilities, read-only root FS, resource limits, probes | Helm rendering and pod security context |
+| JFrog Xray | Optional; depends on plan/configuration | Only claim if visible and tested in the account |
 
-### Create a local repository
+A scan report is not proof of complete security. Review findings, test that release gates block as intended, and document any accepted risk. Do not expose secrets or intentionally vulnerable builds to a public endpoint.
 
-1. In JFrog, open **Administration → Repositories**.
-2. Select **Create a Repository → Local**.
-3. Choose the required package type (Maven for the JAR or Docker for the image).
-4. Enter the repository key shown in the table above and create it.
-5. Return to **Repositories** and confirm both keys appear with repository type **Local**.
+## Start here
 
-**Why two repositories?** Maven stores the compiled Java artifact; Docker stores the container image built from that artifact. They are different package formats and must use the matching repository type.
+1. Follow [Prerequisites and setup](docs/prerequisites-and-setup.md).
+2. Follow [JFrog setup](docs/jfrog-setup.md).
+3. Review [GitHub Actions setup](docs/github-actions.md), especially the required `JF_URL` variable and `JF_ACCESS_TOKEN` secret.
+4. Read [Security controls](docs/security-controls.md).
+5. Follow [Docker and image security](docs/docker-and-image-security.md).
+6. Follow [Helm and Minikube deployment](docs/minikube-deployment.md).
+7. Use [Rebuild from scratch](docs/rebuild-from-scratch.md) to repeat the lab from a clean environment.
+8. Use [Interview walkthrough](docs/interview-walkthrough.md) to present the design and evidence.
 
-**Screenshot evidence:** The project documentation includes the package-type selection screen and the repository list showing `foma-maven-local` and `foma-docker-local`. If recreating this lab, compare your JFrog UI with those screenshots and confirm the repository keys exactly match the workflow configuration.
+## Safe credential handling
 
-## 6. Quick start
+- Never commit access tokens, passwords, private keys, kubeconfig files, or production data.
+- Use GitHub Actions secrets for credentials and a least-privilege JFrog token.
+- Do not expose publishing credentials to untrusted pull requests.
+- If a credential leaks, revoke it immediately; deleting the line later is not enough.
+- Do not include private contact details in the public portfolio.
 
-The complete quick start will be finalized as the application and workflows are added. The intended order is:
+## Completion rule
 
-1. Install and verify Java, Maven, Git, Docker, kubectl, Helm, and Minikube.
-2. Configure the JFrog platform and create the required repositories.
-3. Add the required GitHub Actions variables and secrets.
-4. Run the application and unit tests locally.
-5. Run the security scans and review their reports.
-6. Publish the versioned JAR to Artifactory.
-7. Build and scan the container image.
-8. Deploy locally to Minikube and run smoke tests.
-
-Follow the [documentation index](docs/README.md) rather than skipping setup steps.
-
-## 7. Secrets and safe usage
-
-- Never commit passwords, API keys, access tokens, private keys, kubeconfig files, or production data.
-- Store CI credentials in GitHub Actions secrets or use OIDC when the integration supports it.
-- Use a narrowly scoped JFrog identity and separate build/publish permissions from deployment permissions where practical.
-- If a token is accidentally exposed, revoke it immediately and replace it. Removing it from a later commit does not make an exposed credential safe.
-- Use test data only. Do not publish private personal information in the portfolio.
-- Review scan results; do not ignore findings solely to make a pipeline green.
-
-## 8. Reproducibility and versioning
-
-Commands and configuration should be tested against the versions documented in the prerequisites guide. Where practical, pin dependencies and CI actions. Record known platform-specific differences (Windows, macOS, Linux) rather than assuming every command behaves identically.
-
-A successful run should leave evidence of:
-- passing application tests;
-- generated security reports and SBOM;
-- a versioned artifact in Artifactory;
-- an image scan result;
-- a successful Kubernetes rollout and application health check.
-
-## 9. Project status and contribution approach
-
-The repository is being built incrementally. A section should be marked **complete** only after its implementation has been tested and its steps have been recorded. Do not treat planned features as already enabled.
-
-See the documentation index for the step-by-step implementation path.
+A stage is **verified** only after a real run succeeds and the evidence is inspected. CI workflow YAML and documentation are committed, but that does not by itself mean the pipeline, image publication, or Kubernetes deployment has been tested. Check the Actions tab for the first run and use the troubleshooting guide for failures.
