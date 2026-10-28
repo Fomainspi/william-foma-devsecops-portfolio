@@ -1,0 +1,6 @@
+apiVersion: v2
+name: william-foma-portfolio
+description: William Foma's Spring Boot portfolio application
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
