@@ -37,7 +37,7 @@ Docker image + Trivy image scan
 Helm chart -> local Minikube -> rollout + health check
 ```
 
-The initial workflow publishes the JAR to JFrog after validation. Container publication and remote cluster deployment must be verified against the account's Docker registry access method before being considered complete. A GitHub-hosted runner cannot normally access Minikube on a personal computer; deploy locally unless a secured self-hosted runner is deliberately configured.
+The workflow builds and scans a container image in CI and publishes the versioned JAR to JFrog after validation. Pushing the image to JFrog is intentionally held until the exact Docker registry login method and required username are confirmed from the account's Set Me Up page. Local Minikube deployment is a separate step. A GitHub-hosted runner cannot normally access Minikube on a personal computer; deploy locally unless a secured self-hosted runner is deliberately configured.
 
 ## Implemented repository components
 
