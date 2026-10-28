@@ -2,39 +2,63 @@
 
 ## Purpose
 
-Configure JFrog Artifactory as the trusted store for the versioned Maven JAR and container image.
+Use JFrog Artifactory to store the versioned application JAR and, after registry access is verified, container images.
 
 ## Platform URL
 
-The platform URL for this lab is `https://williamdev.jfrog.io`. Use the base URL in automation—not the browser's `/ui/get_started` path.
+The platform base URL is `https://williamdev.jfrog.io`. Use the base URL in automation, not the browser's `/ui/get_started` page.
 
-## Repository setup
+## Repositories created
 
-In the JFrog UI, open Artifactory and create repositories suitable for:
-- Maven releases (for versioned application artifacts);
-- Docker images (use the repository type and access method supported by your JFrog instance).
+The JFrog repository list shared during setup shows these local repositories:
 
-Record each exact repository key in your lab notes and use the same keys in the workflow. Do not guess repository keys: confirm them in the UI. If the UI does not offer repository creation, check the account permissions and trial capabilities.
+| Repository key | Package type | Use |
+|---|---|---|
+| `foma-maven-local` | Maven | Store the versioned Spring Boot JAR and checksum |
+| `foma-docker-local` | Docker | Intended container image repository |
+
+### Create or verify them in a fresh account
+
+1. Open **Administration → Repositories**.
+2. Choose **Create a Repository → Local**.
+3. Select **Maven** and use key `foma-maven-local`.
+4. Repeat and select **Docker** with key `foma-docker-local`.
+5. Return to **Repositories** and verify both keys and package types.
+
+Why two repositories? Maven artifacts and Docker images use different package formats and registry interactions. Do not create either repository as a generic repository.
+
+### Screenshot evidence
+
+Two screenshots were provided during the project setup: one shows the local repository package-type selection page (including Maven and Docker), and the other shows the repository list with both keys. They are the source of the repository names above. The screenshot files still need to be committed as repository assets to display inline on GitHub.
 
 ## Authentication
 
-Prefer GitHub OIDC if supported by the current JFrog plan and integration. Otherwise, create a scoped access token for CI. Grant only the repositories and operations the workflow needs. Avoid administrator tokens.
+The repository has been configured with:
+- GitHub Actions variable `JF_URL` = `https://williamdev.jfrog.io`
+- GitHub Actions secret `JF_ACCESS_TOKEN` = the user's JFrog access token
 
-For the token approach, add these in GitHub repository Settings → Secrets and variables → Actions:
-- Variable `JF_URL` = `https://williamdev.jfrog.io`
-- Secret `JF_ACCESS_TOKEN` = your JFrog access token
+Do not copy the token into source code, logs, this guide, or chat. Use a least-privilege token that can upload to the required repository and publish build information. Prefer OIDC if you configure a JFrog identity integration later.
 
-Never paste the token into this document, a GitHub issue, source code, or chat. Rotate/revoke it immediately if exposed.
+## Verify connection and artifact
 
-## Verify
+The workflow uses `jf rt ping` before upload. A successful ping confirms connectivity/authentication, but not upload permission. After the first successful run:
 
-After the workflow integration is added, run a connection check that does not print the token. Then publish a test versioned artifact and confirm it appears in the expected repository. Record the repository key, timestamp, and result—not the credential.
+1. Open the GitHub Actions run and inspect the JFrog steps.
+2. Open Artifactory and browse `foma-maven-local`.
+3. Confirm a versioned path under `com/williamfoma/william-foma-devsecops-portfolio/`.
+4. Download the JAR and its `.sha256` sidecar and verify the checksum locally.
+5. Confirm the build record is available under JFrog Builds if build-info publication is enabled for the account.
+
+## Docker registry note
+
+The repository key alone does not prove which Docker registry hostname/access method your JFrog instance requires. Before pushing an image, inspect the repository's **Set Me Up** instructions and use the exact Docker login/registry format shown there. Do not guess a subdomain or path-style endpoint. Registry access may depend on the trial plan and repository configuration.
 
 ## Troubleshooting
 
 - **401 Unauthorized:** token expired/invalid or wrong authentication method.
-- **403 Forbidden:** identity exists but lacks repository permission.
-- **404 Not Found:** check the base URL and exact repository key.
-- **Artifact upload rejected:** check repository type, Maven coordinates, and version policy.
+- **403 Forbidden:** identity lacks deploy or build-info permission.
+- **404 Not Found:** verify base URL and exact repository key.
+- **Artifact upload rejected:** confirm repository type, path, and permissions.
+- **Docker login/push fails:** use the registry URL from JFrog's Set Me Up instructions; the platform URL may not equal the Docker registry endpoint.
 
-Account plans and menus change; document the options actually visible in your JFrog account.
+Never expose the access token in screenshots. If it leaks, revoke it immediately.
