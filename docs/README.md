@@ -17,7 +17,7 @@ This project is designed to be rebuilt from a clean workstation. Follow the guid
 
 ## Current implementation map
 
-- `.github/workflows/devsecops.yml`: Maven validation, Trivy filesystem scanning, CycloneDX SBOM generation, and JFrog JAR upload on a successful push to `main`.
+- `.github/workflows/devsecops.yml`: Maven validation, Trivy filesystem and container-image scanning, CycloneDX SBOM generation, and JFrog JAR upload on a successful push to `main`.
 - `Dockerfile` and `compose.yaml`: container runtime foundation.
 - `helm/william-foma-portfolio/`: Helm chart foundation.
 - `foma-maven-local`: JFrog Maven repository, confirmed in the user's account.
