@@ -5,6 +5,7 @@
 The `.github/workflows/devsecops.yml` workflow currently runs:
 - Maven `clean verify` for compile and tests.
 - CycloneDX Maven plugin to generate an SBOM at `target/bom.json`.
+- Trivy image scanning for HIGH/CRITICAL vulnerabilities in the locally built CI image.
 - Trivy filesystem scanning for vulnerabilities, secrets, and misconfigurations, with HIGH and CRITICAL findings configured to fail the job.
 - JFrog upload only after the validation job passes and only on a push to `main`.
 
@@ -18,7 +19,7 @@ Review the first real workflow run before calling these controls verified. Tool 
 | Trivy filesystem scan | Detect supported dependency vulnerabilities, secrets, and misconfigurations | HIGH/CRITICAL finding fails the step |
 | CycloneDX SBOM | Inventory project components | SBOM generation step must succeed |
 | JFrog artifact upload | Store a traceable versioned JAR and SHA-256 sidecar | Runs only after validation on trusted main branch |
-| Trivy image scan | Planned for the container stage | Must be implemented and tested before image release |
+| Trivy image scan | CI builds a local image and scans HIGH/CRITICAL vulnerabilities | Must pass before artifact publish job runs |
 | Kubernetes manifest scan | Planned for Helm manifests | Add/test a manifest-policy gate before claiming it is active |
 | JFrog Xray | Optional and account-plan dependent | Claim only after enablement and a real scan are confirmed |
 
