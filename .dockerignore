@@ -1,0 +1,9 @@
+.git
+.github
+docs
+target
+.env
+.env.*
+*.pem
+*.key
+README.md
