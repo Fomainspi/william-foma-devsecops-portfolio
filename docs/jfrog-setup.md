@@ -41,7 +41,7 @@ Do not copy the token into source code, logs, this guide, or chat. Use a least-p
 
 ## Verify connection and artifact
 
-The workflow uses `jf rt ping` before upload. A successful ping confirms connectivity/authentication, but not upload permission. After the first successful run:
+The workflow uses `jf rt ping` before upload. Run #30 confirmed the connection, JAR upload, build-info publication, and evidence upload all succeeded. A successful ping alone confirms connectivity/authentication, but not upload permission. After run #30:
 
 1. Open the GitHub Actions run and inspect the JFrog steps.
 2. Open Artifactory and browse `foma-maven-local`.
