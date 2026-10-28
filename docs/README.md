@@ -12,6 +12,7 @@ This project is designed to be rebuilt from a clean workstation. Follow the guid
 6. [Docker and image security](docker-and-image-security.md) — build, harden, scan, and inspect the container.
 7. [Minikube deployment](minikube-deployment.md) — validate the Helm chart and deploy locally.
 8. [Troubleshooting](troubleshooting.md) — diagnose common failures.
+9. [CI workflow incident and resolution report](workflow-incident-report.md) — timeline of failures, fixes, and evidence from successful run #30.
 9. [Rebuild from scratch](rebuild-from-scratch.md) — repeat the complete lab.
 10. [Interview walkthrough](interview-walkthrough.md) — explain architecture, trade-offs, and evidence.
 
@@ -36,5 +37,7 @@ This project is designed to be rebuilt from a clean workstation. Follow the guid
 - **Planned:** design exists; implementation or verification is incomplete.
 - **In progress:** currently being configured or tested.
 - **Verified:** successfully run and evidence recorded.
+
+Run #30 verified both CI security checks and JFrog JAR publication. See the [incident and resolution report](workflow-incident-report.md) for what changed and what remains unverified.
 
 A green workflow does not prove the application is completely secure. Review scanner findings and document accepted risks.
