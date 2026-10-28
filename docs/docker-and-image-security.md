@@ -2,40 +2,69 @@
 
 ## Purpose
 
-Package the approved Java artifact into a repeatable container image and scan it before publication.
+Package the tested Java artifact into a repeatable container image and harden the runtime.
 
-## Build principles
+## Current files
 
-- Use a maintained, minimal Java runtime base image compatible with the app.
-- Copy in the versioned JAR retrieved from Artifactory rather than silently rebuilding a different artifact.
-- Run as a non-root user.
-- Include a `.dockerignore` file.
-- Avoid embedding secrets or build credentials in image layers.
-- Prefer immutable version tags, such as a release version and commit SHA.
-- Pin base images by digest when practical and document how they are updated.
+- `Dockerfile` uses a Java 21 JRE base, copies `target/portfolio.jar`, and runs as UID 1000.
+- `compose.yaml` applies read-only root filesystem, a temporary filesystem for `/tmp`, dropped Linux capabilities, and `no-new-privileges`.
+- `.dockerignore` reduces unnecessary build context.
+
+These files are committed but still require a real local build and runtime verification.
 
 ## Build and inspect
 
-After the Dockerfile and workflow are committed, follow the exact commands in the implementation. Typical local checks include:
+From the repository root, after Java and Maven are installed:
 
 ```bash
+mvn clean package
 docker build -t william-foma-portfolio:local .
 docker image inspect william-foma-portfolio:local
+docker run --rm -p 8080:8080 william-foma-portfolio:local
 ```
 
-Confirm the image was created. The final project guide will specify the exact runtime port and health endpoint after the application is implemented.
+In another terminal, verify the application:
+
+```bash
+curl --fail http://localhost:8080/
+curl --fail http://localhost:8080/actuator-health
+```
+
+Expected health response includes `UP`. Stop the foreground container with Ctrl+C.
+
+You can also use Docker Compose:
+
+```bash
+docker compose up --build
+docker compose down
+```
+
+If the read-only filesystem causes a startup issue, diagnose the required writable paths before changing the hardening settings. Do not remove security options without documenting why.
 
 ## Scan
 
-Run Trivy against the built image using the configured policy. Review package, severity, and fix-availability details. Do not treat “no findings” as proof that the image is completely secure; scanners have coverage and database limitations.
+After building, install Trivy using its official installation instructions and run:
+
+```bash
+trivy image --severity HIGH,CRITICAL william-foma-portfolio:local
+```
+
+Review findings by package, severity, fix availability, and whether the finding is in the base OS or application dependency. Do not treat an empty report as proof that the image is completely secure.
 
 ## Publish
 
-Authenticate using a scoped CI identity, tag with an immutable version, and push only after required gates pass. Never publish a release from an untrusted pull request.
+The JFrog Maven artifact publish stage is implemented first. The Docker repository exists, but the exact registry endpoint/access method must be confirmed from JFrog's **Set Me Up** instructions before adding an image push step. Do not guess a registry hostname. A future image-publish job must:
+1. use the same approved JAR or otherwise prove artifact identity;
+2. tag images immutably (commit SHA or release version);
+3. run Trivy and enforce the agreed threshold;
+4. push only after the security gate passes;
+5. retain scan evidence.
 
 ## Troubleshooting
 
-- Docker daemon unavailable: start the engine and verify with `docker info`.
-- Build context too large: review `.dockerignore`.
-- Registry authentication failure: confirm the JFrog Docker repository endpoint and token permissions.
-- Scanner database failure: inspect network/connectivity logs and retry; do not silently skip the scan.
+- Docker daemon unavailable: start Docker and verify with `docker info`.
+- Missing `target/portfolio.jar`: run `mvn clean package` and inspect the build error.
+- Port 8080 busy: use another host port, e.g. `-p 8081:8080`.
+- Healthcheck fails: inspect `docker logs` and check the health endpoint.
+- Registry authentication fails: follow JFrog's exact Docker registry setup instructions.
+- Scanner database fails: inspect connectivity and retry; do not silently skip the scan.
