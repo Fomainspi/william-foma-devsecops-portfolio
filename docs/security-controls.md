@@ -1,45 +1,50 @@
 # Security Controls and Release Gates
 
-## Purpose
+## Implemented in the current workflow
 
-Explain which checks are used, what they can and cannot prove, and when the pipeline must stop.
+The `.github/workflows/devsecops.yml` workflow currently runs:
+- Maven `clean verify` for compile and tests.
+- CycloneDX Maven plugin to generate an SBOM at `target/bom.json`.
+- Trivy filesystem scanning for vulnerabilities, secrets, and misconfigurations, with HIGH and CRITICAL findings configured to fail the job.
+- JFrog upload only after the validation job passes and only on a push to `main`.
 
-## Planned controls
+Review the first real workflow run before calling these controls verified. Tool installation, database availability, policy behavior, and the actual findings must be checked in the logs.
 
-| Control | Purpose | Gate expectation |
+## Control inventory
+
+| Control | Purpose | Gate |
 |---|---|---|
-| Unit tests | Catch functional regressions | Fail on test failure |
-| SAST (Semgrep or CodeQL) | Flag suspicious source-code patterns | Fail on policy-defined high-risk findings |
-| Maven dependency scan | Identify known vulnerable libraries | Fail on policy-defined severity threshold |
-| Secret scanning | Detect likely committed credentials | Block release; rotate any exposed credential |
-| SBOM (CycloneDX) | Inventory included components | Generate and retain with build evidence |
-| Trivy image scan | Identify image OS/package vulnerabilities | Block on agreed threshold |
-| Manifest scan (Checkov/Kubescape) | Flag risky Kubernetes configuration | Block on policy-defined findings |
-| Optional JFrog Xray | Analyze artifacts and dependencies | Only if the account plan and permissions support it |
+| Maven tests | Catch functional regressions | Any test failure stops the job |
+| Trivy filesystem scan | Detect supported dependency vulnerabilities, secrets, and misconfigurations | HIGH/CRITICAL finding fails the step |
+| CycloneDX SBOM | Inventory project components | SBOM generation step must succeed |
+| JFrog artifact upload | Store a traceable versioned JAR and SHA-256 sidecar | Runs only after validation on trusted main branch |
+| Trivy image scan | Planned for the container stage | Must be implemented and tested before image release |
+| Kubernetes manifest scan | Planned for Helm manifests | Add/test a manifest-policy gate before claiming it is active |
+| JFrog Xray | Optional and account-plan dependent | Claim only after enablement and a real scan are confirmed |
 
-## Policy and thresholds
+## Interpreting results
 
-Choose and document the exact severity threshold when configuring each tool. A scanner may report a finding without failing the job unless the workflow explicitly enforces the policy. Test that each gate really blocks the next release stage.
+A scanner report is not a guarantee of security. Scanners have coverage limits, may report false positives, and rely on current vulnerability databases. Investigate the package, severity, exploitability, and fixed version. Do not suppress a finding simply to obtain a green pipeline.
 
-Do not suppress a finding simply to obtain a green pipeline. If a finding is a false positive or must be temporarily accepted, document:
+For an accepted exception, record:
 - finding identifier and affected component;
-- technical justification;
-- compensating control;
+- technical justification and compensating control;
 - responsible owner;
-- expiry/review date.
+- expiry or review date.
 
 ## SBOM
 
-The SBOM is an inventory, not a guarantee of safety. Store it with the corresponding build version and use it to support vulnerability review and future component-impact analysis.
+The CycloneDX SBOM is an inventory of components and metadata, not a certificate of safety. Retain it with the same workflow run and artifact version. Check the uploaded workflow evidence for `bom.json`.
 
-## Evidence checklist
+## Demonstration evidence
 
-For a completed demonstration, capture:
-- a successful test run;
-- one safe, controlled demonstration of a scanner finding in a lab branch;
-- evidence that the configured gate blocked publishing;
+For a complete interview demonstration, collect:
+- successful test run;
+- Trivy output and any findings;
+- generated SBOM;
+- JFrog artifact and checksum;
+- evidence that a failing test or controlled scanner finding blocks publishing;
 - remediation commit and successful rerun;
-- SBOM and scan reports;
-- image scan and Kubernetes manifest validation output.
+- image scan and Kubernetes manifest validation output after those stages are implemented and tested.
 
 Do not deploy intentionally vulnerable builds to a public endpoint.
