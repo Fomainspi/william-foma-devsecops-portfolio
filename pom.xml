@@ -13,7 +13,6 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <spring-boot.version>4.0.6</spring-boot.version>
     <!-- Override vulnerable transitive versions reported by Trivy; keep these aligned with supported release lines. -->
-    <jackson-bom.version>2.21.7</jackson-bom.version>
     <spring-framework.version>7.0.9</spring-framework.version>
     <tomcat.version>11.0.25</tomcat.version>
   </properties>
@@ -26,13 +25,23 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-      <!-- Explicit overrides are required because properties in an imported BOM are not overridden by consumer properties. -->
+      <!-- Spring Boot 4 uses Jackson 3 (tools.jackson); pin the compatible BOM and affected modules to a patched release. -->
       <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
+        <groupId>tools.jackson</groupId>
         <artifactId>jackson-bom</artifactId>
-        <version>2.21.7</version>
+        <version>3.1.8</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>tools.jackson.core</groupId>
+        <artifactId>jackson-core</artifactId>
+        <version>3.1.8</version>
+      </dependency>
+      <dependency>
+        <groupId>tools.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>3.1.8</version>
       </dependency>
       <dependency>
         <groupId>org.apache.tomcat.embed</groupId>
