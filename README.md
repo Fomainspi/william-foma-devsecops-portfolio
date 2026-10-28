@@ -91,7 +91,28 @@ The project will be documented in small, task-focused guides:
 
 Each hands-on guide should include: **purpose, prerequisites, steps, commands, expected result, verification, common errors, cleanup, and a short explanation of why the step matters.**
 
-## 5. Quick start
+## 5. JFrog repository setup (verified in the account)
+
+The JFrog trial was configured with these **Local** repositories:
+
+| Repository key | Package type | What it stores |
+|---|---|---|
+| `foma-maven-local` | Maven | Versioned Spring Boot JAR artifacts |
+| `foma-docker-local` | Docker | Versioned container images |
+
+### Create a local repository
+
+1. In JFrog, open **Administration → Repositories**.
+2. Select **Create a Repository → Local**.
+3. Choose the required package type (Maven for the JAR or Docker for the image).
+4. Enter the repository key shown in the table above and create it.
+5. Return to **Repositories** and confirm both keys appear with repository type **Local**.
+
+**Why two repositories?** Maven stores the compiled Java artifact; Docker stores the container image built from that artifact. They are different package formats and must use the matching repository type.
+
+**Screenshot evidence:** The project documentation includes the package-type selection screen and the repository list showing `foma-maven-local` and `foma-docker-local`. If recreating this lab, compare your JFrog UI with those screenshots and confirm the repository keys exactly match the workflow configuration.
+
+## 6. Quick start
 
 The complete quick start will be finalized as the application and workflows are added. The intended order is:
 
@@ -106,7 +127,7 @@ The complete quick start will be finalized as the application and workflows are 
 
 Follow the [documentation index](docs/README.md) rather than skipping setup steps.
 
-## 6. Secrets and safe usage
+## 7. Secrets and safe usage
 
 - Never commit passwords, API keys, access tokens, private keys, kubeconfig files, or production data.
 - Store CI credentials in GitHub Actions secrets or use OIDC when the integration supports it.
@@ -115,7 +136,7 @@ Follow the [documentation index](docs/README.md) rather than skipping setup step
 - Use test data only. Do not publish private personal information in the portfolio.
 - Review scan results; do not ignore findings solely to make a pipeline green.
 
-## 7. Reproducibility and versioning
+## 8. Reproducibility and versioning
 
 Commands and configuration should be tested against the versions documented in the prerequisites guide. Where practical, pin dependencies and CI actions. Record known platform-specific differences (Windows, macOS, Linux) rather than assuming every command behaves identically.
 
@@ -126,7 +147,7 @@ A successful run should leave evidence of:
 - an image scan result;
 - a successful Kubernetes rollout and application health check.
 
-## 8. Project status and contribution approach
+## 9. Project status and contribution approach
 
 The repository is being built incrementally. A section should be marked **complete** only after its implementation has been tested and its steps have been recorded. Do not treat planned features as already enabled.
 
