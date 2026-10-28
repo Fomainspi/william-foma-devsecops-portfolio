@@ -2,40 +2,84 @@
 
 ## Purpose
 
-Deploy the scanned container image to a local Kubernetes cluster and verify the rollout.
+Deploy the application to a local Kubernetes cluster with a Helm chart and verify runtime health.
 
-## Start and verify the cluster
+## Start and verify Minikube
 
 ```bash
 minikube start
+kubectl config current-context
 kubectl cluster-info
 kubectl get nodes
+helm version
 ```
 
-Continue only when the node is Ready.
+Continue only when the Minikube node is `Ready` and the current context is the expected local cluster.
+
+## Build an image available to Minikube
+
+For a first local test, build the image directly into Minikube's Docker daemon:
+
+```bash
+eval $(minikube docker-env)
+mvn clean package
+docker build -t william-foma-portfolio:local .
+```
+
+On PowerShell, use the Minikube Docker environment command appropriate to your installed Minikube version, or load the built image using `minikube image load william-foma-portfolio:local`.
+
+## Validate and deploy
+
+Render the chart before installation:
+
+```bash
+helm lint ./helm/william-foma-portfolio
+helm template portfolio ./helm/william-foma-portfolio
+```
+
+Then install it into a dedicated lab namespace:
+
+```bash
+kubectl create namespace foma-portfolio --dry-run=client -o yaml | kubectl apply -f -
+helm upgrade --install portfolio ./helm/william-foma-portfolio \
+  --namespace foma-portfolio \
+  --set image.repository=william-foma-portfolio \
+  --set image.tag=local \
+  --set image.pullPolicy=IfNotPresent
+kubectl rollout status deployment/portfolio-william-foma-portfolio -n foma-portfolio --timeout=120s
+kubectl get pods,svc -n foma-portfolio
+```
+
+If the deployment name differs, use `kubectl get deployments -n foma-portfolio` and the name returned by Helm.
+
+## Smoke test
+
+```bash
+kubectl port-forward -n foma-portfolio svc/portfolio-william-foma-portfolio 8080:8080
+```
+
+In a second terminal:
+
+```bash
+curl --fail http://localhost:8080/
+curl --fail http://localhost:8080/actuator-health
+```
+
+The pod should become Ready and the health endpoint should return `UP`.
 
 ## Security expectations
 
-The Helm chart should configure a dedicated namespace, resource requests/limits, readiness and liveness probes, a non-root security context, no privilege escalation, dropped Linux capabilities, and a read-only root filesystem where the application supports it. Apply least-privilege RBAC. Add NetworkPolicy only after confirming the cluster CNI enforces it.
+The chart defaults request a non-root user, seccomp RuntimeDefault, no privilege escalation, dropped capabilities, read-only root filesystem, resource requests/limits, and HTTP probes. Review the rendered YAML and actual pod configuration. NetworkPolicy is not included because enforcement depends on the cluster CNI.
 
-Validate manifests before applying them. A manifest policy tool can detect common misconfigurations, but results still need review.
+## CI boundary
 
-## Deploy and verify
-
-The exact Helm release name, namespace, chart path, image repository, and application port will be documented once implemented. After deployment, verify:
-
-```bash
-kubectl get pods -A
-kubectl get deployments -A
-kubectl get events -A --sort-by=.metadata.creationTimestamp
-```
-
-Use `kubectl describe pod`, `kubectl logs`, and `helm status` to troubleshoot. A successful command is not sufficient: confirm the pod is Ready and the app's health endpoint responds.
-
-## Local cluster limitation
-
-A GitHub-hosted runner cannot normally reach Minikube running on your workstation. Run the deployment stage locally after CI publishes the image, or set up a secured self-hosted runner deliberately. Do not expose the Kubernetes API publicly just to make hosted CI deployment easier.
+A GitHub-hosted runner cannot normally reach Minikube on a personal workstation. Deploy locally after CI succeeds unless you deliberately configure a secured self-hosted runner. Do not expose the Kubernetes API publicly.
 
 ## Cleanup
 
-Delete only the lab release and namespace you created. Confirm the current Kubernetes context and namespace before running destructive commands.
+```bash
+helm uninstall portfolio -n foma-portfolio
+kubectl delete namespace foma-portfolio
+```
+
+Confirm the current context and namespace before cleanup. Delete only the lab resources.
