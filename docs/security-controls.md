@@ -49,3 +49,12 @@ For a complete interview demonstration, collect:
 - image scan and Kubernetes manifest validation output after those stages are implemented and tested.
 
 Do not deploy intentionally vulnerable builds to a public endpoint.
+
+
+## Kubernetes runtime hardening
+
+The Helm chart defines a target runtime configuration: non-root UID/GID 1000, `allowPrivilegeEscalation: false`, dropped Linux capabilities, seccomp `RuntimeDefault`, a read-only root filesystem, a dedicated writable `/tmp` volume, resource requests/limits, and HTTP probes.
+
+Use the [Kubernetes hardening walkthrough](kubernetes-hardening.md) to apply and verify controls on the live Minikube lab. Keep the distinction between chart configuration and a running Deployment explicit: the live Deployment in namespace `foma-devsecops` had its explicit pod-level security context checked in a prior session, and the initial non-root patch was later rolled back. Therefore, do not mark live Kubernetes hardening verified until the final security context, successful rollout, and application smoke test are recorded in the [hardening log](kubernetes-hardening-log.md).
+
+Kubernetes manifest scanning remains a planned control until a policy tool is added to CI and its pass/fail behavior is tested.
