@@ -37,11 +37,11 @@ Docker image + Trivy image scan
 Helm chart -> local Minikube -> rollout + health check
 ```
 
-The workflow builds and scans a container image in CI and publishes the versioned JAR to JFrog after validation. Pushing the image to JFrog is intentionally held until the exact Docker registry login method and required username are confirmed from the account's Set Me Up page. Local Minikube deployment is a separate step. A GitHub-hosted runner cannot normally access Minikube on a personal computer; deploy locally unless a secured self-hosted runner is deliberately configured.
+The workflow builds and scans a container image in CI. After validation on main, it publishes the versioned JAR and SHA-256 sidecar to `foma-maven-local`, pushes a versioned container image to `williamdev.jfrog.io/foma-docker-local/`, and publishes build information. Docker publishing requires the GitHub Actions variable `JF_USER` (JFrog username) in addition to `JF_URL` and the `JF_ACCESS_TOKEN` secret. Local Minikube deployment is a separate step. A GitHub-hosted runner cannot normally access Minikube on a personal computer; deploy locally unless a secured self-hosted runner is deliberately configured.
 
 ## Implemented repository components
 
-- `.github/workflows/devsecops.yml` — CI checks, SBOM generation, Trivy filesystem scan, and main-branch JFrog artifact publication.
+- `.github/workflows/devsecops.yml` — CI checks, SBOM generation, Trivy scans, and main-branch JFrog JAR and Docker image publication.
 - `pom.xml` and `src/` — Spring Boot application and tests.
 - `Dockerfile` and `compose.yaml` — local container packaging with a non-root user and additional runtime restrictions.
 - `helm/william-foma-portfolio/` — Helm chart foundation for local Kubernetes.
@@ -54,7 +54,7 @@ The repositories have been created in the JFrog account and confirmed in the scr
 | Repository key | Package type | Purpose |
 |---|---|---|
 | `foma-maven-local` | Maven | Versioned application JAR and checksum |
-| `foma-docker-local` | Docker | Intended destination for container images |
+| `foma-docker-local` | Docker | Versioned container image destination (`williamdev.jfrog.io/foma-docker-local/`) |
 
 The setup steps are documented in [JFrog setup](docs/jfrog-setup.md). The successful CI and publication steps are evidenced by [run #30](https://github.com/Fomainspi/william-foma-devsecops-portfolio/actions/runs/40770703468); the companion incident report includes the two screenshots shared for this run.
 
@@ -93,4 +93,4 @@ A scan report is not proof of complete security. Review findings, test that rele
 
 ## Completion rule
 
-A stage is **verified** only after a real run succeeds and the evidence is inspected. CI validation and JFrog JAR publication are verified by run #30. Docker image publication and Kubernetes deployment remain separate tasks; see the [CI incident/resolution report](docs/workflow-incident-report.md) and [troubleshooting guide](docs/troubleshooting.md).
+A stage is **verified** only after a real run succeeds and the evidence is inspected. CI validation and JFrog JAR publication are verified by the successful CI runs. Docker image publication is now wired into the main-branch publish job and must be verified in its next run; Kubernetes deployment remains a separate task; see the [CI incident/resolution report](docs/workflow-incident-report.md) and [troubleshooting guide](docs/troubleshooting.md).
