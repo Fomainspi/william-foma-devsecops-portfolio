@@ -122,14 +122,7 @@ Expected: rollout succeeds, pod becomes Ready, and logs show normal startup. If 
 kubectl get deployment william-foma-portfolio -n foma-devsecops -o jsonpath='podSecurityContext={.spec.template.spec.securityContext}{"\n"}containerSecurityContext={.spec.template.spec.containers[0].securityContext}{"\n"}volumeMounts={.spec.template.spec.containers[0].volumeMounts}{"\n"}volumes={.spec.template.spec.volumes}{"\n"}'
 kubectl rollout status deployment/william-foma-portfolio -n foma-devsecops --timeout=120s
 kubectl get deployment william-foma-portfolio -n foma-devsecops
-kubectl get pods -n foma-devsecsecops
-```
-
-If the last command reports that the namespace does not exist, use the correct namespace command below (the intended namespace is `foma-devsecops`):
-
-```bash
 kubectl get pods -n foma-devsecops
-```
 
 Review the output for `runAsNonRoot: true`, UID/GID 1000, `seccompProfile: RuntimeDefault`, `allowPrivilegeEscalation: false`, dropped `ALL` capabilities, `readOnlyRootFilesystem: true`, and a `/tmp` volume mount.
 
