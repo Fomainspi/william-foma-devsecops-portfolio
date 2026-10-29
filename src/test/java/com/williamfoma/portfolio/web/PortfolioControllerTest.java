@@ -14,17 +14,16 @@ class PortfolioControllerTest {
     private MockMvc mockMvc;
 
     @Test
-    void homeReturnsPortfolioIdentity() throws Exception {
+    void homeForwardsToPortfolioHtml() throws Exception {
         mockMvc.perform(get("/"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("William Foma"))
-                .andExpect(jsonPath("$.headline").value("DevOps / DevSecOps Engineer"));
+                .andExpect(forwardedUrl("/index.html"));
     }
 
     @Test
-    void healthEndpointReturnsUp() throws Exception {
+    void healthEndpointReturnsOkText() throws Exception {
         mockMvc.perform(get("/actuator-health"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("UP"));
+                .andExpect(content().string("OK"));
     }
 }
