@@ -35,6 +35,7 @@ Two screenshots were provided during the project setup: one shows the local repo
 
 The repository has been configured with:
 - GitHub Actions variable `JF_URL` = `https://williamdev.jfrog.io`
+- GitHub Actions variable `JF_USER` = your JFrog username (needed for Docker registry login)
 - GitHub Actions secret `JF_ACCESS_TOKEN` = the user's JFrog access token
 
 Do not copy the token into source code, logs, this guide, or chat. Use a least-privilege token that can upload to the required repository and publish build information. Prefer OIDC if you configure a JFrog identity integration later.
@@ -51,7 +52,7 @@ The workflow uses `jf rt ping` before upload. Run #30 confirmed the connection, 
 
 ## Docker registry note
 
-The repository key alone does not prove which Docker registry hostname/access method your JFrog instance requires. Before pushing an image, inspect the repository's **Set Me Up** instructions and use the exact Docker login/registry format shown there. Do not guess a subdomain or path-style endpoint. Registry access may depend on the trial plan and repository configuration.
+The **Set Me Up → Push** instructions for `foma-docker-local` explicitly show the path-style registry endpoint `williamdev.jfrog.io/foma-docker-local/<IMAGE>:<TAG>`. The workflow tags the release image using that endpoint. JFrog CLI handles Docker login using the configured JFrog server, and Docker registry authentication requires a username as well as the access token; set `JF_USER` as a GitHub Actions variable. The workflow will fail with a clear message if `JF_USER` is missing.
 
 ## Troubleshooting
 
