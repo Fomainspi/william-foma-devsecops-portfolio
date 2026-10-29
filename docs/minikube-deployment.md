@@ -71,6 +71,10 @@ The pod should become Ready and the health endpoint should return `UP`.
 
 The chart defaults request a non-root user, seccomp RuntimeDefault, no privilege escalation, dropped capabilities, read-only root filesystem, resource requests/limits, and HTTP probes. Review the rendered YAML and actual pod configuration. NetworkPolicy is not included because enforcement depends on the cluster CNI.
 
+## Runtime hardening
+
+The chart includes a hardened security context and a dedicated writable `/tmp` volume. Review the rendered YAML and then follow the [Kubernetes hardening walkthrough](kubernetes-hardening.md) if you are hardening the separate live lab Deployment in namespace `foma-devsecops`. Record the actual rollout and application test results in the [hardening log](kubernetes-hardening-log.md); chart values alone are not proof that a live Deployment is hardened.
+
 ## CI boundary
 
 A GitHub-hosted runner cannot normally reach Minikube on a personal workstation. Deploy locally after CI succeeds unless you deliberately configure a secured self-hosted runner. Do not expose the Kubernetes API publicly.
