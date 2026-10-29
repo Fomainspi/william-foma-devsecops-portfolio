@@ -74,7 +74,7 @@ This verifies configured GitHub Actions-to-JFrog authentication and the permissi
 The GitHub Actions page shows **2 warnings and 1 notice**, while both jobs are green. The screenshots do not show the expanded annotation messages, so their exact causes cannot be reliably identified from the evidence provided. Expand **Annotations** in run #30 and inspect each message before deciding whether it is harmless or needs action.
 
 Other limitations:
-- CI scans the container image but currently publishes the JAR to JFrog; it does not yet push the Docker image to foma-docker-local.
+- The main-branch publish job has now been extended to push the versioned Docker image to `williamdev.jfrog.io/foma-docker-local/`. This new stage is not verified until its first successful workflow run; the GitHub Actions variable `JF_USER` must be configured.
 - A green CI build does not prove the Helm chart has been deployed to Minikube or that runtime behavior has been tested.
 - Scanner results reflect the database and policy at the time of the run; continue scanning on future changes.
 - Keep JF_ACCESS_TOKEN in GitHub Actions secrets. Never place it in source code, docs, or screenshots.
@@ -90,6 +90,6 @@ Other limitations:
 - [ ] Expand and record the exact text of the two warnings and one notice.
 - [ ] Confirm the uploaded JAR and checksum are visible in foma-maven-local.
 - [ ] Review the published JFrog build-info record.
-- [ ] Add and verify Docker image publication to foma-docker-local only after confirming the exact registry endpoint in JFrog Set Me Up.
+- [ ] Set the GitHub Actions variable `JF_USER` and verify the first Docker image push to `foma-docker-local`.
 - [ ] Render the Helm chart, deploy to Minikube, and record rollout/health-check evidence separately.
 - [ ] Keep the Trivy HIGH/CRITICAL gate enabled and review future findings rather than suppressing them by default.
