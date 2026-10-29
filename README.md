@@ -72,6 +72,7 @@ A scan report is not proof of complete security. Review findings, test that rele
 7. Work through the [Kubernetes hardening walkthrough](docs/kubernetes-hardening.md), recording results in the [hardening log](docs/kubernetes-hardening-log.md).
 8. Use [Rebuild from scratch](docs/rebuild-from-scratch.md) to repeat the lab from a clean environment.
 9. Use [Interview walkthrough](docs/interview-walkthrough.md) to present the design and evidence.
+10. Review [Homepage routing and Java build troubleshooting](docs/homepage-routing-and-build-fix.md) for the Java 21 compiler setup, local port conflict, Spring Boot root routing, and validation commands.
 
 ## Safe credential handling
 
