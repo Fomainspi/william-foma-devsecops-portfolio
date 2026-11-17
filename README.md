@@ -74,6 +74,26 @@ A scan report is not proof of complete security. Review findings, test that rele
 9. Use [Interview walkthrough](docs/interview-walkthrough.md) to present the design and evidence.
 10. Review [Homepage routing and Java build troubleshooting](docs/homepage-routing-and-build-fix.md) for the Java 21 compiler setup, local port conflict, Spring Boot root routing, and validation commands.
 
+## Featured business projects
+
+The public portfolio homepage also presents two business platforms developed for Diamond Black Corporation. They are separate case studies that share one source repository.
+
+### 1. Diamond Black Corporation — Corporate Website
+
+- Live platform: https://diamondblack-ph.com/
+- Source: https://github.com/Fomainspi/Diamond-black
+- Purpose: corporate digital presence for entrepreneurship, innovation, strategic networking, events and business opportunities connecting Africa and the Philippines.
+- Engineering scope: Next.js/React/TypeScript application, public corporate pages, event registration, contact and newsletter integrations, PostgreSQL persistence, Docker-based deployment, Caddy reverse proxy and AWS Lightsail hosting.
+
+### 2. Diamond Black Corporation — Custom CMS
+
+- Integrated with the live corporate platform and maintained in the same source repository.
+- Implementation notes: [CMS implementation](https://github.com/Fomainspi/Diamond-black/blob/main/docs/CMS-IMPLEMENTATION.md).
+- Capabilities: protected administrator access, dashboard, news and page content workflows, event management, registration search/status/CSV export, contact inbox, validated media library, site settings, audit logging and Mailchimp audience visibility.
+- Engineering scope: Next.js App Router, TypeScript, PostgreSQL, Prisma 7, server-side authorization, session management, additive database migrations and Docker/AWS operational workflows.
+
+The two portfolio cards distinguish the public-facing business platform from the administrative system behind it. The CMS is presented as live based on the project owner's confirmation; deployment and operational documentation should be kept aligned with the current production rollout.
+
 ## Safe credential handling
 
 - Never commit access tokens, passwords, private keys, kubeconfig files, or production data.
